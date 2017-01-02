@@ -55,7 +55,7 @@ class Jflight extends Applet3D {
 
     // アプレットの構築
 
-    public constructor(scene: THREE.Scene, private hudCanvas: HTMLCanvasElement) {
+    public constructor(scene: THREE.Scene, hudCanvas: HTMLCanvasElement) {
         super();
 
         // 機体形状の初期化
@@ -95,20 +95,7 @@ class Jflight extends Applet3D {
         this.plane[3].level = 30;
     }
 
-    // アプレットの初期化
-    // public init() {
-    // }
-
-    // アプレットの起動
-    // public start() {
-    // }
-
-    // アプレットの停止
-    // public stop() {
-    // }
-
     // 機体形状の初期化
-
     protected objInit() {
         if (Jflight.obj.length !== 0) {
             return;
@@ -203,7 +190,6 @@ class Jflight extends Applet3D {
 
     // アプレットの表示
     // 実際の動作中はこちらではなく、run()の方で表示される
-
     public paint(context: CanvasRenderingContext2D) {
         this.draw(context);
     }
@@ -229,12 +215,13 @@ class Jflight extends Applet3D {
         // 機体表示
         // this.writePlane(context);
 
-        this.hud.render(this.hudCanvas);
+        this.hud.render(this);
     }
 
     // メインループ
 
     public run() {
+        let keyboard = Main.keyboard;
         // スペースキーが押されたら自動操縦OFF
         if (keyboard.pressed("space")) {
             this.autoFlight = false;
@@ -339,7 +326,7 @@ class Jflight extends Applet3D {
                 }
 
                 // 現在位置～0.05秒後の弾丸位置をライン表示
-                this.change3d(this.plane[0], <any>bp.position, cp);
+                this.change3d(this.plane[0], bp.position, cp);
                 dm.x = bp.position.x + bp.velocity.x * 0.05;
                 dm.y = bp.position.y + bp.velocity.y * 0.05;
                 dm.z = bp.position.z + bp.velocity.z * 0.05;

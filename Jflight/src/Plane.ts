@@ -76,7 +76,7 @@ class Plane extends PhysicsState {
     public bullets: Bullet[] = [];         // 各弾丸オブジェクト
     public gunTarget: number;           // 主目標の機体No.
     public targetSx: number;
-    targetSy: number;  // 主目標の位置（スクリーン座標）
+    public targetSy: number;  // 主目標の位置（スクリーン座標）
     public targetDis: number;        // 主目標までの距離
     public gunTime: number;          // 弾丸衝突予想時間（機銃の追尾に使用）
 
@@ -132,7 +132,6 @@ class Plane extends PhysicsState {
     }
 
     // 各変数を初期化する
-
     public posInit() {
         this.position.x = (Math.random() - 0.5) * 1000 - 8000;
         this.position.y = (Math.random() - 0.5) * 1000 - 1100;
@@ -392,6 +391,7 @@ class Plane extends PhysicsState {
     protected keyScan(world: Jflight) {
         this.stickVel.set(0, 0, 0);
         this.boost = false;
+        let keyboard = Main.keyboard;
         this.gunShoot = keyboard.pressed("space"); // world.keyShoot;
         this.aamShoot = keyboard.pressed("space"); // world.keyShoot;
 
@@ -505,7 +505,7 @@ class Plane extends PhysicsState {
         this.wings[5].aAngle = 0;
         this.wings[5].bAngle = 0;
 
-        this.change_w2l(<any>this.velocity, <any>this.localVelocity);
+        this.change_w2l(this.velocity, this.localVelocity);
         this.onGround = false;
 
         if (this.height < 5) {
@@ -806,7 +806,7 @@ class Plane extends PhysicsState {
         this.gcVel.y = this.position.y + ni.y + (oi.y - this.gVel.y * this.gunTime) * this.gunTime;
         this.gcVel.z = this.position.z + ni.z + (oi.z + (-9.8 - this.gVel.z) * this.gunTime / 2) * this.gunTime;
 
-        world.change3d(this, <any>this.gcVel, sc);
+        world.change3d(this, this.gcVel, sc);
 
         // 機銃を目標へ向ける
         if (this.gunTarget >= 0) {

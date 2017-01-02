@@ -30,6 +30,32 @@ var CameraHelper;
         return result;
     }
     CameraHelper.worldToView = worldToView;
+    //export function toScreenPosition(obj: THREE.Object3D, camera: THREE.Camera) {
+    //    var vector = new THREE.Vector3();
+    //    var widthHalf = 0.5 * Main.renderer.context.canvas.width;
+    //    var heightHalf = 0.5 * Main.renderer.context.canvas.height;
+    //    obj.updateMatrixWorld(true);
+    //    vector.setFromMatrixPosition(obj.matrixWorld);
+    //    vector.project(camera);
+    //    vector.x = (vector.x * widthHalf) + widthHalf;
+    //    vector.y = - (vector.y * heightHalf) + heightHalf;
+    //    return {
+    //        x: vector.x,
+    //        y: vector.y
+    //    };
+    //}
+    function toScreenPosition(vector, camera) {
+        var widthHalf = 0.5 * Main.renderer.context.canvas.width;
+        var heightHalf = 0.5 * Main.renderer.context.canvas.height;
+        vector.project(camera);
+        vector.x = (vector.x * widthHalf) + widthHalf;
+        vector.y = -(vector.y * heightHalf) + heightHalf;
+        return {
+            x: vector.x,
+            y: vector.y
+        };
+    }
+    CameraHelper.toScreenPosition = toScreenPosition;
 })(CameraHelper || (CameraHelper = {}));
 // THREEx.KeyboardState.js keep the current state of the keyboard.
 // It is possible to query it at any time. No need of an event.
@@ -412,7 +438,7 @@ var Applet3D = (function () {
 var PhysicsState = (function () {
     function PhysicsState() {
         this.position = new THREE.Vector3(); // 位置（ワールド座標系）
-        this.velocity = new THREE.Vector3(); // 速度（ワールド座標系）
+        this.velocity = new THREE.Vector3(); // 速度[m/s]（ワールド座標系）
         this.rotation = new THREE.Euler(); //
     }
     return PhysicsState;
@@ -1143,6 +1169,7 @@ var Plane = (function (_super) {
     Plane.prototype.keyScan = function (world) {
         this.stickVel.set(0, 0, 0);
         this.boost = false;
+        var keyboard = Main.keyboard;
         this.gunShoot = keyboard.pressed("space"); // world.keyShoot;
         this.aamShoot = keyboard.pressed("space"); // world.keyShoot;
         if (keyboard.pressed("b")) {
@@ -1683,7 +1710,6 @@ var Jflight = (function (_super) {
     // �A�v���b�g�̍\�z
     function Jflight(scene, hudCanvas) {
         var _this = _super.call(this) || this;
-        _this.hudCanvas = hudCanvas;
         // �ϐ�
         _this.plane = []; // �e�@�̃I�u�W�F�N�g�ւ̔z��
         _this.autoFlight = true; // ���@�iplane[0]�j��������c�ɂ���̂�
@@ -1723,15 +1749,6 @@ var Jflight = (function (_super) {
         _this.plane[3].level = 30;
         return _this;
     }
-    // �A�v���b�g�̏�����
-    // public init() {
-    // }
-    // �A�v���b�g�̋N��
-    // public start() {
-    // }
-    // �A�v���b�g�̒�~
-    // public stop() {
-    // }
     // �@�̌`��̏�����
     Jflight.prototype.objInit = function () {
         if (Jflight.obj.length !== 0) {
@@ -1822,10 +1839,11 @@ var Jflight = (function (_super) {
         // this.writeGround(context);
         // �@�̕\��
         // this.writePlane(context);
-        this.hud.render(this.hudCanvas);
+        this.hud.render(this);
     };
     // ���C�����[�v
     Jflight.prototype.run = function () {
+        var keyboard = Main.keyboard;
         // �X�y�[�X�L�[�������ꂽ�玩�����cOFF
         if (keyboard.pressed("space")) {
             this.autoFlight = false;
@@ -2023,62 +2041,77 @@ var HUD = (function () {
             this.context = context;
         }
     }
-    HUD.prototype.drawLine = function (context, strokeStyle, x1, y1, x2, y2) {
+    HUD.prototype.drawLine = function (strokeStyle, x1, y1, x2, y2) {
+        var context = this.context;
         context.save();
-        context.strokeStyle = strokeStyle;
-        //描画することを宣言する
-        context.beginPath();
-        //描き始め（始点）を決定する
-        context.moveTo(x1, y1);
-        //始点から指定の座標まで線を引く
-        context.lineTo(x2, y2);
-        //引き続き線を引いていく
-        //context.lineTo(0, 100);
-        //context.lineTo(51, 15);
-        //描画を終了する
-        context.closePath();
-        //上記記述は定義情報である。この命令で線を描く。
-        context.stroke();
+        {
+            context.strokeStyle = strokeStyle;
+            //描画することを宣言する
+            context.beginPath();
+            //描き始め（始点）を決定する
+            context.moveTo(x1, y1);
+            //始点から指定の座標まで線を引く
+            context.lineTo(x2, y2);
+            //引き続き線を引いていく
+            //context.lineTo(0, 100);
+            //context.lineTo(51, 15);
+            //描画を終了する
+            context.closePath();
+            //上記記述は定義情報である。この命令で線を描く。
+            context.stroke();
+        }
         context.restore();
     };
     HUD.prototype.drawCircle = function (context, strokeStyle, centerX, centerY, radius) {
         context.save();
-        context.beginPath();
-        context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-        //context.fillStyle = 'green';
-        //context.fill();
-        context.lineWidth = 2;
-        context.strokeStyle = strokeStyle;
-        context.stroke();
+        {
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+            //context.fillStyle = 'green';
+            //context.fill();
+            context.lineWidth = 2;
+            context.strokeStyle = strokeStyle;
+            context.stroke();
+        }
         context.restore();
     };
-    HUD.prototype.fillText = function (context, text, x, y) {
+    HUD.prototype.fillText = function (text, x, y) {
+        var context = this.context;
         context.save();
-        context.font = "18px 'ＭＳ Ｐゴシック'";
-        context.fillStyle = "white";
-        context.fillText(text, x, y);
+        {
+            context.font = "18px 'ＭＳ Ｐゴシック'";
+            context.fillStyle = "white";
+            context.fillText(text, x, y);
+        }
         context.restore();
     };
-    HUD.prototype.drawCross = function (context, x, y, length) {
-        this.drawLine(context, "rgb(255, 255, 255)", x, y - length, x, y + length);
-        this.drawLine(context, "rgb(255, 255, 255)", x - length, y, x + length, y);
+    HUD.prototype.strokeRect = function (strokeStyle, x, y, w, h) {
+        var context = this.context;
+        context.save();
+        {
+            context.strokeStyle = strokeStyle;
+            context.strokeRect(x, y, w, h);
+        }
+        context.restore();
     };
-    HUD.prototype.render = function (canvas) {
-        // let _w = this.canvas.width;
-        // _w = 0;
+    HUD.prototype.drawCross = function (x, y, length) {
+        this.drawLine("rgb(255, 255, 255)", x, y - length, x, y + length);
+        this.drawLine("rgb(255, 255, 255)", x - length, y, x + length, y);
+    };
+    HUD.prototype.render = function (world) {
         var width = this.canvas.width;
         var height = this.canvas.height;
         var centerX = width / 2;
         var centerY = height / 2;
-        var context = canvas.getContext("2d");
-        if (context) {
-            this.drawCross(context, centerX, centerY, 15);
-            var radius = height / 2 * 0.8;
-            this.drawCircle(context, "rgb(255, 255, 255)", centerX, centerY, height / 2 * 0.8);
-            this.drawCircle(context, "rgb(255, 255, 255)", centerX + this.plane.stickPos.y * radius, centerY - this.plane.stickPos.x * radius, 10);
-            this.drawCircle(context, "rgb(255, 255, 255)", centerX + Jflight.mouseX, centerY + Jflight.mouseY, 10);
-            var y = this.plane.rotation.y;
-            context.save();
+        var context = this.context;
+        this.drawCross(centerX, centerY, 15);
+        var radius = height / 2 * 0.8;
+        this.drawCircle(context, "rgb(255, 255, 255)", centerX, centerY, height / 2 * 0.8);
+        this.drawCircle(context, "rgb(255, 255, 255)", centerX + this.plane.stickPos.y * radius, centerY - this.plane.stickPos.x * radius, 10);
+        this.drawCircle(context, "rgb(255, 255, 255)", centerX + Jflight.mouseX, centerY + Jflight.mouseY, 10);
+        var y = this.plane.rotation.y;
+        context.save();
+        {
             // Move registration point to the center of the canvas
             context.translate(width / 2, height / 2);
             // Rotate 1 degree
@@ -2089,11 +2122,14 @@ var HUD = (function () {
             for (var i = -170; i <= 180; i += 10) {
                 // let x = -this.plane[0].aVel.x + (i * Math.PI / 180);
                 // let distance = 300;
-                this.drawLine(context, "rgb(255, 255, 255)", centerX - 150, centerY + i * 20 + Math.tan(x) * centerY, centerX + 150, centerY + i * 20 + Math.tan(x) * centerY);
+                this.drawLine("rgb(255, 255, 255)", centerX - 150, centerY + i * 20 + Math.tan(x) * centerY, centerX + 150, centerY + i * 20 + Math.tan(x) * centerY);
             }
-            context.restore();
-            this.fillText(context, "Speed=" + this.plane.velocity.length(), 50, 50);
         }
+        context.restore();
+        this.fillText("Speed=" + this.plane.velocity.length(), 50, 50);
+        var t = world.plane[this.plane.target].position.clone();
+        var u = CameraHelper.toScreenPosition(t, Main.camera);
+        this.strokeRect("rgb(0, 255, 0)", u.x - 10, u.y - 10, 20, 20);
     };
     return HUD;
 }());
@@ -2198,7 +2234,6 @@ var Cloud = (function () {
 ///<reference path="HUD.ts" />
 ///<reference path="./Sky/SkyShader.ts" />
 ///<reference path="./Sky/Cloud.ts" />
-var keyboard = new THREEx.KeyboardState();
 var Main;
 (function (Main) {
     "use strict";
@@ -2208,8 +2243,6 @@ var Main;
     // standard global variables
     var container;
     var scene;
-    var camera;
-    var renderer;
     var mouseX;
     var mouseY;
     // var stats: Stats;
@@ -2222,6 +2255,7 @@ var Main;
     var light;
     var shadowLight;
     var backLight;
+    Main.keyboard = new THREEx.KeyboardState();
     function createLights() {
         light = new THREE.HemisphereLight(0xffffff, 0xb3858c, 0.65);
         light.position.set(0, 0, 100000);
@@ -2252,17 +2286,17 @@ var Main;
         var ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT;
         var NEAR = 0.1;
         var FAR = 2000000;
-        camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-        scene.add(camera);
-        camera.position.z = SCREEN_HEIGHT / 2;
-        camera.lookAt(scene.position);
+        Main.camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+        scene.add(Main.camera);
+        Main.camera.position.z = SCREEN_HEIGHT / 2;
+        Main.camera.lookAt(scene.position);
         // RENDERER
-        renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+        Main.renderer = new THREE.WebGLRenderer({ antialias: true });
+        Main.renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
         container = document.getElementById("ThreeJS");
-        container.appendChild(renderer.domElement);
+        container.appendChild(Main.renderer.domElement);
         // EVENTS
-        THREEx.WindowResize(renderer, camera);
+        THREEx.WindowResize(Main.renderer, Main.camera);
         // THREEx.FullScreen.bindKey({ charCode: 'm'.charCodeAt(0) });
         // CONTROLS
         // controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -2337,7 +2371,7 @@ var Main;
             sunSphere.position.y = -distance * Math.sin(phi) * Math.cos(theta);
             sunSphere.visible = effectController.sun;
             sky.uniforms.sunPosition.value.copy(sunSphere.position);
-            renderer.render(scene, camera);
+            Main.renderer.render(scene, Main.camera);
         }
         var gui = new dat.GUI();
         gui.add(effectController, "turbidity", 1.0, 20.0 /*, 0.1*/).onChange(guiChanged);
@@ -2398,8 +2432,8 @@ var Main;
         // controls.update();
         // stats.update();
         // man.quaternion(camera.quaternion);
-        camera.setRotationFromMatrix(CameraHelper.worldToView(flight.plane[0].matrix));
-        camera.position.set(flight.camerapos.x, flight.camerapos.y, flight.camerapos.z);
+        Main.camera.setRotationFromMatrix(CameraHelper.worldToView(flight.plane[0].matrix));
+        Main.camera.position.set(flight.camerapos.x, flight.camerapos.y, flight.camerapos.z);
         flight.plane[1].line.position.set(flight.plane[1].position.x, flight.plane[1].position.y, flight.plane[1].position.z);
         flight.plane[2].line.position.set(flight.plane[2].position.x, flight.plane[2].position.y, flight.plane[2].position.z);
         flight.plane[3].line.position.set(flight.plane[3].position.x, flight.plane[3].position.y, flight.plane[3].position.z);
@@ -2409,7 +2443,7 @@ var Main;
         flight.setHeight(window.innerHeight);
     }
     function render() {
-        renderer.render(scene, camera);
+        Main.renderer.render(scene, Main.camera);
         var context = canvas.getContext("2d");
         if (context) {
             flight.render(context);

@@ -13,10 +13,6 @@ declare interface Promise<T> {
     finally<U>(onFinally?: () => U | Promise<U>): Promise<U>;
 }
 
-
-var keyboard = new THREEx.KeyboardState();
-
-
 namespace Main {
     "use strict";
 
@@ -29,8 +25,9 @@ namespace Main {
     // standard global variables
     var container: HTMLDivElement;
     var scene: THREE.Scene;
-    var camera: THREE.PerspectiveCamera;
-    var renderer: THREE.WebGLRenderer;
+    export var camera: THREE.PerspectiveCamera;
+
+    export var renderer: THREE.WebGLRenderer;
 
     var mouseX: number;
     var mouseY: number;
@@ -47,6 +44,9 @@ namespace Main {
     let light: THREE.HemisphereLight;
     let shadowLight: THREE.DirectionalLight;
     let backLight: THREE.DirectionalLight;
+
+
+    export var keyboard = new THREEx.KeyboardState();
 
     function createLights() {
         light = new THREE.HemisphereLight(0xffffff, 0xb3858c, 0.65);

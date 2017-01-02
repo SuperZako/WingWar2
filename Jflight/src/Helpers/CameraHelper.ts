@@ -30,5 +30,37 @@
         return result;
     }
 
+    //export function toScreenPosition(obj: THREE.Object3D, camera: THREE.Camera) {
+    //    var vector = new THREE.Vector3();
 
+    //    var widthHalf = 0.5 * Main.renderer.context.canvas.width;
+    //    var heightHalf = 0.5 * Main.renderer.context.canvas.height;
+
+    //    obj.updateMatrixWorld(true);
+    //    vector.setFromMatrixPosition(obj.matrixWorld);
+    //    vector.project(camera);
+
+    //    vector.x = (vector.x * widthHalf) + widthHalf;
+    //    vector.y = - (vector.y * heightHalf) + heightHalf;
+
+    //    return {
+    //        x: vector.x,
+    //        y: vector.y
+    //    };
+    //}
+
+    export function toScreenPosition(vector: THREE.Vector3, camera: THREE.Camera) {
+        var widthHalf = 0.5 * Main.renderer.context.canvas.width;
+        var heightHalf = 0.5 * Main.renderer.context.canvas.height;
+
+        vector.project(camera);
+
+        vector.x = (vector.x * widthHalf) + widthHalf;
+        vector.y = - (vector.y * heightHalf) + heightHalf;
+
+        return {
+            x: vector.x,
+            y: vector.y
+        };
+    }
 }
