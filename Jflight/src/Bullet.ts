@@ -38,7 +38,8 @@ class Bullet extends PhysicsState {
         this.velocity.z += Jflight.G * Jflight.DT;
 
         // ˆê‚Â‘O‚ÌˆÊ’u‚ð•Û‘¶
-        this.oldPosition.set(this.position.x, this.position.y, this.position.z);
+        // this.oldPosition.set(this.position.x, this.position.y, this.position.z);
+        this.oldPosition.copy(this.position);
 
         // ˆÚ“®
         // this.position.addCons(this.velocity, Jflight.DT);
@@ -47,9 +48,10 @@ class Bullet extends PhysicsState {
 
         // ’eŠÛ‚ðˆÚ“®‚³‚¹‚é
         if (this.use > 0) {
-            this.sphere.position.x = this.position.x;
-            this.sphere.position.y = this.position.y;
-            this.sphere.position.z = this.position.z;
+            //this.sphere.position.x = this.position.x;
+            //this.sphere.position.y = this.position.y;
+            //this.sphere.position.z = this.position.z;
+            this.sphere.position.copy(this.position);
             this.sphere.visible = true;
         } else {
             this.sphere.visible = false;

@@ -5,32 +5,25 @@
 };
 var CameraHelper;
 (function (CameraHelper) {
-    var x = new THREE.Vector3();
-    var y = new THREE.Vector3();
-    // var z = new THREE.Vector3();
-    function lookAtFromZY(/*eye: THREE.Vector3, target: THREE.Vector3*/ z, up) {
-        z.normalize();
-        if (z.lengthSq() === 0) {
-            z.z = 1;
-        }
-        x.crossVectors(up, z).normalize();
-        if (x.lengthSq() === 0) {
-            z.z += 0.0001;
-            x.crossVectors(up, z).normalize();
-        }
-        y.crossVectors(z, x);
-        var m = new THREE.Matrix4();
-        m.makeBasis(x, y, z);
-        return m;
-    }
-    CameraHelper.lookAtFromZY = lookAtFromZY;
+    var xAxis = new THREE.Vector3();
+    var yAxis = new THREE.Vector3();
+    var zAxis = new THREE.Vector3();
+    var result = new THREE.Matrix4();
+    //     機体座標系
+    //           Z
+    //           ^  X
+    //           | /
+    //           |/
+    //     Y<----
+    //     ワールド座標系
+    //     Z
+    //     ^  Y
+    //     | /
+    //     |/
+    //     -------->X
     function worldToView(world) {
-        var result = new THREE.Matrix4();
         result.copy(world);
         result.transpose();
-        var xAxis = new THREE.Vector3();
-        var yAxis = new THREE.Vector3();
-        var zAxis = new THREE.Vector3();
         result.extractBasis(xAxis, yAxis, zAxis);
         result.identity();
         result.makeBasis(xAxis, zAxis, yAxis.negate());
@@ -600,16 +593,18 @@ var Bullet = (function (_super) {
         // �d�͉���
         this.velocity.z += Jflight.G * Jflight.DT;
         // ��O�̈ʒu��ۑ�
-        this.oldPosition.set(this.position.x, this.position.y, this.position.z);
+        // this.oldPosition.set(this.position.x, this.position.y, this.position.z);
+        this.oldPosition.copy(this.position);
         // �ړ�
         // this.position.addCons(this.velocity, Jflight.DT);
         this.position.addScaledVector(this.velocity, Jflight.DT);
         this.use--;
         // �e�ۂ�ړ�������
         if (this.use > 0) {
-            this.sphere.position.x = this.position.x;
-            this.sphere.position.y = this.position.y;
-            this.sphere.position.z = this.position.z;
+            //this.sphere.position.x = this.position.x;
+            //this.sphere.position.y = this.position.y;
+            //this.sphere.position.z = this.position.z;
+            this.sphere.position.copy(this.position);
             this.sphere.visible = true;
         }
         else {
@@ -2178,58 +2173,7 @@ var MathHelper;
     }
     MathHelper.toRadians = toRadians;
 })(MathHelper || (MathHelper = {}));
-var textureLoader = new THREE.TextureLoader();
-var Billboard = (function () {
-    function Billboard(scene, url) {
-        var texture = textureLoader.load(url);
-        var material = new THREE.MeshBasicMaterial({ map: texture, depthWrite: false, depthTest: false, transparent: true });
-        var geometry = new THREE.PlaneGeometry(1000, 1000);
-        this.mesh = new THREE.Mesh(geometry, material);
-        var mesh = this.mesh;
-        mesh.rotateZ(Math.random() * Math.PI);
-        scene.add(mesh);
-    }
-    Billboard.prototype.setPsosition = function (x, y, z) {
-        var mesh = this.mesh;
-        mesh.position.set(x, y, z);
-    };
-    Billboard.prototype.quaternion = function (newQuaternion) {
-        var mesh = this.mesh;
-        mesh.quaternion.copy(newQuaternion);
-    };
-    Billboard.prototype.update = function (position) {
-        var mesh = this.mesh;
-        var m = Billboard.matrix;
-        var up = Billboard.up;
-        m.lookAt(position, mesh.position, up);
-        mesh.setRotationFromMatrix(m);
-    };
-    Billboard.prototype._update = function (matrix) {
-        var mesh = this.mesh;
-        mesh.setRotationFromMatrix(matrix);
-    };
-    return Billboard;
-}());
-Billboard.up = new THREE.Vector3(0, 0, 1);
-Billboard.matrix = new THREE.Matrix4();
 ///<reference path="../Helpers/MathHelper.ts" />
-///<reference path="./Billboard.ts" />
-var loader = new THREE.TextureLoader();
-var _texture = loader.load('textures/cloud10.png');
-// var texture = THREE.ImageUtils.loadTexture('cloud10.png', null, animate);
-_texture.magFilter = THREE.LinearMipMapLinearFilter;
-_texture.minFilter = THREE.LinearMipMapLinearFilter;
-var _fog = new THREE.Fog(0x4584b4, -100, 3000);
-THREE.ShaderLib['cloud'] = {
-    uniforms: {
-        "map": { value: _texture },
-        "fogColor": { value: _fog.color },
-        "fogNear": { value: _fog.near },
-        "fogFar": { value: _fog.far },
-    },
-    vertexShader: "\n        varying vec2 vUv;\n\n        void main() {\n\n        vUv = uv;\n        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n\n        }\n    ",
-    fragmentShader: "\n        uniform sampler2D map;\n\n        uniform vec3 fogColor;\n        uniform float fogNear;\n        uniform float fogFar;\n\n        varying vec2 vUv;\n\n        void main() {\n\n        float depth = gl_FragCoord.z / gl_FragCoord.w;\n        float fogFactor = smoothstep( fogNear, fogFar, depth );\n\n        gl_FragColor = texture2D( map, vUv );\n        gl_FragColor.w *= pow( gl_FragCoord.z, 20.0 );\n        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );\n\n        }\n    "
-};
 var Cloud = (function () {
     function Cloud(scene) {
         var geometry = new THREE.DodecahedronGeometry(1000, 1);
@@ -2247,64 +2191,6 @@ var Cloud = (function () {
     }
     return Cloud;
 }());
-//class Cloud {
-//    billboards: Billboard[] = [];
-//    public constructor(scene: THREE.Scene) {
-//        for (let i = 0; i < 100; ++i) {
-//            let billboard = new Billboard(scene, "textures/cloud10.png");
-//            billboard.setPsosition(MathHelper.randInRange(-10000, 10000), MathHelper.randInRange(-10000, 10000), 10000 + MathHelper.randInRange(-10, 10));
-//            this.billboards.push(billboard);
-//        }
-//    }
-//    public update(/*quaternion: THREE.Quaternion*/position: THREE.Vector3) {
-//        for (let billboard of this.billboards) {
-//            // billboard.quaternion(quaternion);
-//            billboard.update(position);
-//        }
-//    }
-//    public _update(/*quaternion: THREE.Quaternion*/matrix: THREE.Matrix4) {
-//        for (let billboard of this.billboards) {
-//            // billboard.quaternion(quaternion);
-//            billboard._update(matrix);
-//        }
-//    }
-//}
-//class Cloud {
-//    mesh: THREE.Mesh;
-//    public constructor(scene: THREE.Scene) {
-//        let geometry = new THREE.Geometry();
-//        // instantiate a loader
-//        //var loader = new THREE.TextureLoader();
-//        //var texture = loader.load('cloud10.png');
-//        //var texture = THREE.ImageUtils.loadTexture('cloud10.png', null, animate);
-//        //texture.magFilter = THREE.LinearMipMapLinearFilter;
-//        //texture.minFilter = THREE.LinearMipMapLinearFilter;
-//        //var fog = new THREE.Fog(0x4584b4, - 100, 3000);
-//        var cloudShader = THREE.ShaderLib["cloud"];
-//        var material = new THREE.ShaderMaterial({
-//            fragmentShader: cloudShader.fragmentShader,
-//            vertexShader: cloudShader.vertexShader,
-//            uniforms: cloudShader.uniforms,
-//            depthWrite: false,
-//            depthTest: false,
-//            transparent: true
-//        });
-//        var plane = new THREE.Mesh(new THREE.PlaneGeometry(64, 64));
-//        // plane.rotateX(Math.PI / 2);
-//        for (var i = 0; i < 100; i++) {
-//            plane.position.x = Math.random() * 1000 - 500;
-//            plane.position.y = - Math.random() * Math.random() * 200 - 15;
-//            plane.position.z = i;
-//            // plane.rotateZ(Math.random() * Math.PI);
-//            plane.scale.x = plane.scale.y = Math.random() * Math.random() * 1.5 + 0.5;
-//            // THREE.GeometryUtils.merge(geometry, plane);
-//            geometry.mergeMesh(plane)
-//        }
-//        this.mesh = new THREE.Mesh(geometry, material);
-//        scene.add(this.mesh);
-//        this.mesh.position.set(0, 0, 5000);
-//    }
-//} 
 ///<reference path="./Helpers/CameraHelper.ts" />
 ///<reference path="THREEx.KeyboardState.ts" />
 ///<reference path="THREEx.WindowResize.ts" />
@@ -2512,18 +2398,6 @@ var Main;
         // controls.update();
         // stats.update();
         // man.quaternion(camera.quaternion);
-        //{
-        //    let m = flight.plane[0].matrix;
-        //    let a = new THREE.Matrix4();
-        //    a.copy(m);
-        //    a.transpose();
-        //    let xAxis = new THREE.Vector3();
-        //    let yAxis = new THREE.Vector3();
-        //    let zAxis = new THREE.Vector3();
-        //    a.extractBasis(xAxis, yAxis, zAxis);
-        //    m.makeBasis(xAxis, zAxis, yAxis.negate());
-        //    camera.setRotationFromMatrix(m);
-        //}
         camera.setRotationFromMatrix(CameraHelper.worldToView(flight.plane[0].matrix));
         camera.position.set(flight.camerapos.x, flight.camerapos.y, flight.camerapos.z);
         flight.plane[1].line.position.set(flight.plane[1].position.x, flight.plane[1].position.y, flight.plane[1].position.z);
@@ -2533,16 +2407,6 @@ var Main;
         canvas.height = window.innerHeight;
         flight.setWidth(window.innerWidth);
         flight.setHeight(window.innerHeight);
-        //{
-        //    let m = camera.matrix.clone();
-        //    let xAxis = new THREE.Vector3();
-        //    let yAxis = new THREE.Vector3();
-        //    let zAxis = new THREE.Vector3();
-        //    m.extractBasis(xAxis, yAxis, zAxis);
-        //    let _m = CameraHelper.lookAtFromZY(zAxis, new THREE.Vector3(0, 0, 1));
-        //    //cloud.update(camera.position);
-        //    cloud._update(_m);
-        //}
     }
     function render() {
         renderer.render(scene, camera);

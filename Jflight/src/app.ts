@@ -296,20 +296,7 @@ namespace Main {
         // controls.update();
         // stats.update();
         // man.quaternion(camera.quaternion);
-        //{
-        //    let m = flight.plane[0].matrix;
-        //    let a = new THREE.Matrix4();
-        //    a.copy(m);
-        //    a.transpose();
-        //    let xAxis = new THREE.Vector3();
-        //    let yAxis = new THREE.Vector3();
-        //    let zAxis = new THREE.Vector3();
-        //    a.extractBasis(xAxis, yAxis, zAxis);
 
-        //    m.makeBasis(xAxis, zAxis, yAxis.negate());
-
-        //    camera.setRotationFromMatrix(m);
-        //}
         camera.setRotationFromMatrix(CameraHelper.worldToView(flight.plane[0].matrix));
 
         camera.position.set(flight.camerapos.x, flight.camerapos.y, flight.camerapos.z);
@@ -323,17 +310,6 @@ namespace Main {
         canvas.height = window.innerHeight;
         flight.setWidth(window.innerWidth);
         flight.setHeight(window.innerHeight);
-
-        //{
-        //    let m = camera.matrix.clone();
-        //    let xAxis = new THREE.Vector3();
-        //    let yAxis = new THREE.Vector3();
-        //    let zAxis = new THREE.Vector3();
-        //    m.extractBasis(xAxis, yAxis, zAxis);
-        //    let _m = CameraHelper.lookAtFromZY(zAxis, new THREE.Vector3(0, 0, 1));
-        //    //cloud.update(camera.position);
-        //    cloud._update(_m);
-        //}
     }
 
     function render() {

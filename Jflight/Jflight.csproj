@@ -605,7 +605,6 @@
     <Content Include="packages.config" />
     <TypeScriptCompile Include="node_modules\%40types\dat-gui\index.d.ts" />
     <TypeScriptCompile Include="src\Helpers\CameraHelper.ts" />
-    <TypeScriptCompile Include="src\Sky\Billboard.ts" />
     <TypeScriptCompile Include="src\Sky\Cloud.ts" />
     <TypeScriptCompile Include="src\Sky\SkyShader.ts" />
     <Content Include="test\clouds.html" />
