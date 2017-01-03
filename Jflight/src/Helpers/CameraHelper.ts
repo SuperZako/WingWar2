@@ -2,6 +2,9 @@
     let xAxis = new THREE.Vector3();
     let yAxis = new THREE.Vector3();
     let zAxis = new THREE.Vector3();
+
+    let vector = new THREE.Vector3();
+
     let result = new THREE.Matrix4();
 
 
@@ -49,10 +52,10 @@
     //    };
     //}
 
-    export function toScreenPosition(vector: THREE.Vector3, camera: THREE.Camera) {
+    export function toScreenPosition(position: THREE.Vector3, camera: THREE.Camera) {
         var widthHalf = 0.5 * Main.renderer.context.canvas.width;
         var heightHalf = 0.5 * Main.renderer.context.canvas.height;
-
+        vector.copy(position);
         vector.project(camera);
 
         vector.x = (vector.x * widthHalf) + widthHalf;

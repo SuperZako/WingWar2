@@ -453,7 +453,6 @@ class Plane extends PhysicsState {
     }
 
     // 機体計算
-
     public moveCalc(world: Jflight) {
         let ve;
         let dm = new THREE.Vector3();
@@ -465,12 +464,16 @@ class Plane extends PhysicsState {
         if (this.gunTarget >= 0 && world.plane[this.gunTarget].use) {
 
             // 主目標の座標をスクリーン座標に変換
-            world.change3d(this, world.plane[this.gunTarget].position, dm);
+            // world.change3d(this, world.plane[this.gunTarget].position, dm);
+            let camera = Main.camera.clone();
+            camera.setRotationFromMatrix(CameraHelper.worldToView(this.matrix));
+            camera.position.copy(this.position);
+            let p = CameraHelper.toScreenPosition(world.plane[this.gunTarget].position, camera);
 
             // スクリーン内なら
-            if (dm.x > 0 && dm.x < world.getWidth() && dm.y > 0 && dm.y < world.getHeight()) {
-                this.targetSx = dm.x;
-                this.targetSy = dm.y;
+            if (p.x > 0 && p.x < Main.renderer.context.canvas.width && p.y > 0 && p.y < Main.renderer.context.canvas.height) {
+                this.targetSx = p.x;
+                this.targetSy = p.y;
             }
         }
 
@@ -777,9 +780,9 @@ class Plane extends PhysicsState {
     public moveBullet(world: Jflight) {
         // let aa;
 
-        let sc = new THREE.Vector3();
-        let a = new THREE.Vector3();
-        let b = new THREE.Vector3();
+        // let sc = new THREE.Vector3();
+        // let a = new THREE.Vector3();
+        // let b = new THREE.Vector3();
         let c = new THREE.Vector3();
         let dm = new THREE.Vector3();
         let oi = new THREE.Vector3();
@@ -797,7 +800,7 @@ class Plane extends PhysicsState {
 
         // 弾丸の到達予想時間を求めておく
         if (this.gunTarget >= 0)
-            this.gunTime = this.targetDis / (/*oi.abs()*/oi.length() * 1.1);
+            this.gunTime = this.targetDis / (oi.length() * 1.1);
         if (this.gunTime > 1.0)
             this.gunTime = 1.0;
 
@@ -806,7 +809,13 @@ class Plane extends PhysicsState {
         this.gcVel.y = this.position.y + ni.y + (oi.y - this.gVel.y * this.gunTime) * this.gunTime;
         this.gcVel.z = this.position.z + ni.z + (oi.z + (-9.8 - this.gVel.z) * this.gunTime / 2) * this.gunTime;
 
-        world.change3d(this, this.gcVel, sc);
+        // world.change3d(this, this.gcVel, sc);
+        let camera = Main.camera.clone();
+        camera.setRotationFromMatrix(CameraHelper.worldToView(this.matrix));
+        camera.position.copy(this.position);
+        camera.updateProjectionMatrix();
+
+        let sc = CameraHelper.toScreenPosition(this.gcVel, camera);
 
         // 機銃を目標へ向ける
         if (this.gunTarget >= 0) {
@@ -814,8 +823,12 @@ class Plane extends PhysicsState {
             c.copy(world.plane[this.gunTarget].position);
             //c.addCons(<any>world.plane[this.gunTarget].velocity, this.gunTime);
             c.addScaledVector(world.plane[this.gunTarget].velocity, this.gunTime);
-            world.change3d(this, c, a);
-            world.change3d(this, world.plane[this.gunTarget].position, b);
+
+            // world.change3d(this, c, a);
+            let a = CameraHelper.toScreenPosition(c, camera);
+
+            // world.change3d(this, world.plane[this.gunTarget].position, b);
+            let b = CameraHelper.toScreenPosition(world.plane[this.gunTarget].position, camera);
             sc.x += b.x - a.x;
             sc.y += b.y - a.y;
         }
@@ -869,7 +882,7 @@ class Plane extends PhysicsState {
                     this.bullets[i].position.addVectors(this.position, <any>ni);
 
                     // this.bullets[i].position.addCons(this.bullets[i].velocity, 0.1 * aa);
-                    this.bullets[i].position.addScaledVector(<any>this.bullets[i].velocity, 0.1 * aa);
+                    this.bullets[i].position.addScaledVector(this.bullets[i].velocity, 0.1 * aa);
 
                     this.bullets[i].oldPosition.set(this.bullets[i].position.x, this.bullets[i].position.y, this.bullets[i].position.z);
                     this.bullets[i].bom = 0;

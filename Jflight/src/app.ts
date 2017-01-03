@@ -71,7 +71,7 @@ namespace Main {
 
     // functions
     export function init(): void {
-        canvas = <HTMLCanvasElement>document.getElementById("canvas");
+        canvas = <HTMLCanvasElement>document.getElementById("hud");
         canvas.onmousemove = onMouseMove;
         // scene
         scene = new THREE.Scene();
@@ -93,7 +93,7 @@ namespace Main {
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
-        container = <HTMLDivElement>document.getElementById("ThreeJS");
+        container = <HTMLDivElement>document.getElementById("view3d");
 
         container.appendChild(renderer.domElement);
 
@@ -299,7 +299,7 @@ namespace Main {
 
         camera.setRotationFromMatrix(CameraHelper.worldToView(flight.plane[0].matrix));
 
-        camera.position.set(flight.camerapos.x, flight.camerapos.y, flight.camerapos.z);
+        camera.position.copy(flight.plane[0].position);
 
         flight.plane[1].line.position.set(flight.plane[1].position.x, flight.plane[1].position.y, flight.plane[1].position.z);
         flight.plane[2].line.position.set(flight.plane[2].position.x, flight.plane[2].position.y, flight.plane[2].position.z);
@@ -308,8 +308,8 @@ namespace Main {
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        flight.setWidth(window.innerWidth);
-        flight.setHeight(window.innerHeight);
+        //flight.setWidth(window.innerWidth);
+        //flight.setHeight(window.innerHeight);
     }
 
     function render() {

@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="css\base.css" />
+    <Content Include="css\index.css" />
     <Content Include="node_modules\three\build\three.js" />
     <Content Include="node_modules\three\build\three.min.js" />
     <Content Include="node_modules\three\build\three.modules.js" />
@@ -776,7 +777,6 @@
     <TypeScriptCompile Include="node_modules\%40types\three\three-trackballcontrols.d.ts" />
     <TypeScriptCompile Include="node_modules\%40types\three\three-transformcontrols.d.ts" />
     <TypeScriptCompile Include="src\app.ts" />
-    <TypeScriptCompile Include="src\Applet3D.ts" />
     <TypeScriptCompile Include="src\Bullet.ts" />
     <TypeScriptCompile Include="src\Helpers\MathHelper.ts" />
     <TypeScriptCompile Include="src\Helpers\Vector3Helper.ts" />
